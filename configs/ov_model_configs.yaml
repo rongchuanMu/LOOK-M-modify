@@ -1,0 +1,10 @@
+llava_qwen_ov-7b:
+    model_name: llava_qwen
+    model_dir: /home/rcmu/models/llava-onevision-qwen2-7b-ov
+    gen_kwargs:
+        max_new_tokens: 512
+        min_new_tokens: 1
+        do_sample: false
+        temperature: 0.0
+    max_context_len: 4096
+    n_tokens_per_image: 729

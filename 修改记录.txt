@@ -1,0 +1,2 @@
+1、修改了/home/rcmu/read_papers/LOOK-M-main/configs/model_configs.yaml 中的模型路径，使用的本地路径，先下载到本地了
+2、llava llama改了两个地方，把他没定义的东西给删掉了。可以从官网恢复代码
