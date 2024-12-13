@@ -6,8 +6,7 @@
 
     - 然后在 /LLaVA/transformers/models/mistral/modeling_mistral.py 中的 MistralModel 类中根据 prefill 阶段结果计算每一层的buget 为列表 buget_layers 并保存，对应1184行-1205行
 
-    - 在 decode 阶段进行第一个 token 生成之前，在每一层去取出对应 buget 并按比例分配，修改 kv cache, 对应287行-307行,需要注意的是因为decode阶段计算的 kv 是直接拼在 kv cache后面，我保持了decode阶段原有的
-      position id （删减kv cache之前的position id），后续 decode 阶段正常向kv cache中添加新的kv
+    - 在 decode 阶段进行第一个 token 生成之前，在每一层去取出对应 buget 并按比例分配，修改 kv cache, 对应287行-307行,需要注意的是因为decode阶段计算的 kv 是直接拼在 kv cache后面，我保持了decode阶段原有的 position id （删减kv cache之前的position id），后续 decode 阶段正常向kv cache中添加新的kv
 
     - 根据每层的buget，选取每个头的top k ，更新 kv cache 的代码在 /LLaVA/transformers/cache_utils.py 的 prefill_update 和 update 函数中，对应114行-120行
       
