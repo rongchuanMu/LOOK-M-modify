@@ -1,0 +1,14 @@
+1. 使用模型 llava-v1.6-mistral-7b 
+2. 使用推理脚本路径为 vl_cache/LLaVA/llava/eval/model_vqa_test.py
+3. 修改后的 transformers 路径为 vl_cache/LLaVA/transformers
+4. 修改记录
+    - 首先在 /LLaVA/llava/model/llava_arch.py 中的 prepare_inputs_labels_for_multimodal 获得图片后答案的token数量，记录在 post_vision_size_list 中，传入后续模型中
+
+    - 然后在 /LLaVA/transformers/models/mistral/modeling_mistral.py 中的 MistralModel 类中根据 prefill 阶段结果计算每一层的buget 为列表 buget_layers 并保存，对应1184行-1205行
+
+    - 在 decode 阶段进行第一个 token 生成之前，在每一层去取出对应 buget 并按比例分配，修改 kv cache, 对应287行-307行,需要注意的是因为decode阶段计算的 kv 是直接拼在 kv cache后面，我保持了decode阶段原有的
+      position id （删减kv cache之前的position id），后续 decode 阶段正常向kv cache中添加新的kv
+
+    - 根据每层的buget，选取每个头的top k ，更新 kv cache 的代码在 /LLaVA/transformers/cache_utils.py 的 prefill_update 和 update 函数中，对应114行-120行
+      
+
