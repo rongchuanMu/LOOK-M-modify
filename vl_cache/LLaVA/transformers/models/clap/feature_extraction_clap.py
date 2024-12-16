@@ -14,7 +14,6 @@
 # limitations under the License.
 """Feature extractor class for CLAP."""
 
-
 import copy
 from typing import Any, Dict, List, Optional, Union
 
@@ -361,3 +360,6 @@ class ClapFeatureExtractor(SequenceFeatureExtractor):
             input_features = input_features.convert_to_tensors(return_tensors)
 
         return input_features
+
+
+__all__ = ["ClapFeatureExtractor"]

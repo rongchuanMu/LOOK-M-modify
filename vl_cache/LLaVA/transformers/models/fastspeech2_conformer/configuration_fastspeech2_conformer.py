@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" FastSpeech2Conformer model configuration"""
+"""FastSpeech2Conformer model configuration"""
 
 from typing import Dict
 
@@ -21,19 +21,6 @@ from ...utils import logging
 
 
 logger = logging.get_logger(__name__)
-
-
-FASTSPEECH2_CONFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP = {
-    "espnet/fastspeech2_conformer": "https://huggingface.co/espnet/fastspeech2_conformer/raw/main/config.json",
-}
-
-FASTSPEECH2_CONFORMER_HIFIGAN_PRETRAINED_CONFIG_ARCHIVE_MAP = {
-    "espnet/fastspeech2_conformer_hifigan": "https://huggingface.co/espnet/fastspeech2_conformer_hifigan/raw/main/config.json",
-}
-
-FASTSPEECH2_CONFORMER_WITH_HIFIGAN_PRETRAINED_CONFIG_ARCHIVE_MAP = {
-    "espnet/fastspeech2_conformer_with_hifigan": "https://huggingface.co/espnet/fastspeech2_conformer_with_hifigan/raw/main/config.json",
-}
 
 
 class FastSpeech2ConformerConfig(PretrainedConfig):
@@ -177,6 +164,7 @@ class FastSpeech2ConformerConfig(PretrainedConfig):
     ```"""
 
     model_type = "fastspeech2_conformer"
+    base_config_key = "model_config"
     attribute_map = {"num_hidden_layers": "encoder_layers", "num_attention_heads": "encoder_num_attention_heads"}
 
     def __init__(
@@ -390,6 +378,7 @@ class FastSpeech2ConformerHifiGanConfig(PretrainedConfig):
     ```"""
 
     model_type = "hifigan"
+    base_config_key = "vocoder_config"
 
     def __init__(
         self,
@@ -466,7 +455,7 @@ class FastSpeech2ConformerWithHifiGanConfig(PretrainedConfig):
     """
 
     model_type = "fastspeech2_conformer_with_hifigan"
-    is_composition = True
+    sub_configs = {"model_config": FastSpeech2ConformerConfig, "vocoder_config": FastSpeech2ConformerHifiGanConfig}
 
     def __init__(
         self,

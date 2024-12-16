@@ -89,7 +89,7 @@ class ClapProcessor(ProcessorMixin):
             )
 
         if text is not None and audios is not None:
-            encoding["input_features"] = audio_features.input_features
+            encoding.update(audio_features)
             return encoding
         elif text is not None:
             return encoding
@@ -115,3 +115,6 @@ class ClapProcessor(ProcessorMixin):
         tokenizer_input_names = self.tokenizer.model_input_names
         feature_extractor_input_names = self.feature_extractor.model_input_names
         return list(dict.fromkeys(tokenizer_input_names + feature_extractor_input_names))
+
+
+__all__ = ["ClapProcessor"]

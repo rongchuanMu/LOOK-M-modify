@@ -1310,7 +1310,7 @@ class EsmFoldRelativePosition(nn.Module):
     def forward(self, residue_index, mask=None):
         """
         Input:
-          residue_index: B x L tensor of indices (dytpe=torch.long) mask: B x L tensor of booleans
+          residue_index: B x L tensor of indices (dtype=torch.long) mask: B x L tensor of booleans
 
         Output:
           pairwise_state: B x L x L x pairwise_state_dim tensor of embeddings
@@ -1915,7 +1915,7 @@ class EsmFoldingTrunk(nn.Module):
         # This parameter means the axial attention will be computed
         # in a chunked manner. This should make the memory used more or less O(L) instead of O(L^2).
         # It's equivalent to running a for loop over chunks of the dimension we're iterative over,
-        # where the chunk_size is the size of the chunks, so 128 would mean to parse 128-lengthed chunks.
+        # where the chunk_size is the size of the chunks, so 128 would mean to parse 128-length chunks.
         self.chunk_size = chunk_size
 
     def forward(self, seq_feats, pair_feats, true_aa, residx, mask, no_recycles):

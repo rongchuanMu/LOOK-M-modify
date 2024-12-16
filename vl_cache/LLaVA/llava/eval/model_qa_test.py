@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append('/home/zxwang/module/llava_16/LLaVA')
+# sys.path.append('/home/zxwang/module/llava_16/LLaVA')
 
 import argparse
 from transformers import AutoTokenizer, AutoModelForCausalLM, StoppingCriteria

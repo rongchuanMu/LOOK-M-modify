@@ -74,6 +74,7 @@ class LlavaMistralForCausalLM(MistralForCausalLM, LlavaMetaForCausalLM):
         images: Optional[torch.FloatTensor] = None,
         image_sizes: Optional[List[List[int]]] = None,
         return_dict: Optional[bool] = None,
+        cache_position: Optional[torch.LongTensor] = None,
         post_vision_size_list: Optional[List[int]] = None,
         alpha_sparsity: Optional[float] = None
     ) -> Union[Tuple, CausalLMOutputWithPast]:

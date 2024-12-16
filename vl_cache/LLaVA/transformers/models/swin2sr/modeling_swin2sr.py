@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" PyTorch Swin2SR Transformer model."""
-
+"""PyTorch Swin2SR Transformer model."""
 
 import collections.abc
 import math
@@ -47,12 +46,6 @@ _CONFIG_FOR_DOC = "Swin2SRConfig"
 # Base docstring
 _CHECKPOINT_FOR_DOC = "caidas/swin2SR-classical-sr-x2-64"
 _EXPECTED_OUTPUT_SHAPE = [1, 180, 488, 648]
-
-
-SWIN2SR_PRETRAINED_MODEL_ARCHIVE_LIST = [
-    "caidas/swin2SR-classical-sr-x2-64",
-    # See all Swin2SR models at https://huggingface.co/models?filter=swin2sr
-]
 
 
 @dataclass
@@ -290,8 +283,8 @@ class Swin2SRSelfAttention(nn.Module):
         )
 
         # get relative_coords_table
-        relative_coords_h = torch.arange(-(self.window_size[0] - 1), self.window_size[0], dtype=torch.float32)
-        relative_coords_w = torch.arange(-(self.window_size[1] - 1), self.window_size[1], dtype=torch.float32)
+        relative_coords_h = torch.arange(-(self.window_size[0] - 1), self.window_size[0], dtype=torch.int64).float()
+        relative_coords_w = torch.arange(-(self.window_size[1] - 1), self.window_size[1], dtype=torch.int64).float()
         relative_coords_table = (
             torch.stack(meshgrid([relative_coords_h, relative_coords_w], indexing="ij"))
             .permute(1, 2, 0)
@@ -301,13 +294,15 @@ class Swin2SRSelfAttention(nn.Module):
         if pretrained_window_size[0] > 0:
             relative_coords_table[:, :, :, 0] /= pretrained_window_size[0] - 1
             relative_coords_table[:, :, :, 1] /= pretrained_window_size[1] - 1
-        else:
+        elif window_size > 1:
             relative_coords_table[:, :, :, 0] /= self.window_size[0] - 1
             relative_coords_table[:, :, :, 1] /= self.window_size[1] - 1
         relative_coords_table *= 8  # normalize to -8, 8
         relative_coords_table = (
             torch.sign(relative_coords_table) * torch.log2(torch.abs(relative_coords_table) + 1.0) / math.log2(8)
         )
+        # set to same dtype as mlp weight
+        relative_coords_table = relative_coords_table.to(next(self.continuous_position_bias_mlp.parameters()).dtype)
         self.register_buffer("relative_coords_table", relative_coords_table, persistent=False)
 
         # get pair-wise relative position index for each token inside the window
@@ -487,7 +482,9 @@ class Swin2SROutput(nn.Module):
 
 # Copied from transformers.models.swinv2.modeling_swinv2.Swinv2Layer with Swinv2->Swin2SR
 class Swin2SRLayer(nn.Module):
-    def __init__(self, config, dim, input_resolution, num_heads, shift_size=0, pretrained_window_size=0):
+    def __init__(
+        self, config, dim, input_resolution, num_heads, drop_path_rate=0.0, shift_size=0, pretrained_window_size=0
+    ):
         super().__init__()
         self.input_resolution = input_resolution
         window_size, shift_size = self._compute_window_shift(
@@ -505,7 +502,7 @@ class Swin2SRLayer(nn.Module):
             else (pretrained_window_size, pretrained_window_size),
         )
         self.layernorm_before = nn.LayerNorm(dim, eps=config.layer_norm_eps)
-        self.drop_path = Swin2SRDropPath(config.drop_path_rate) if config.drop_path_rate > 0.0 else nn.Identity()
+        self.drop_path = Swin2SRDropPath(drop_path_rate) if drop_path_rate > 0.0 else nn.Identity()
         self.intermediate = Swin2SRIntermediate(config, dim)
         self.output = Swin2SROutput(config, dim)
         self.layernorm_after = nn.LayerNorm(dim, eps=config.layer_norm_eps)
@@ -1135,6 +1132,10 @@ class Swin2SRForImageSuperResolution(Swin2SRPreTrainedModel):
          ```"""
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
+        loss = None
+        if labels is not None:
+            raise NotImplementedError("Training is not supported at the moment")
+
         height, width = pixel_values.shape[2:]
 
         if self.config.upsampler == "pixelshuffle_aux":
@@ -1165,10 +1166,6 @@ class Swin2SRForImageSuperResolution(Swin2SRPreTrainedModel):
 
         reconstruction = reconstruction / self.swin2sr.img_range + self.swin2sr.mean
         reconstruction = reconstruction[:, :, : height * self.upscale, : width * self.upscale]
-
-        loss = None
-        if labels is not None:
-            raise NotImplementedError("Training is not supported at the moment")
 
         if not return_dict:
             output = (reconstruction,) + outputs[1:]

@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" DINOv2 model configuration"""
+"""DINOv2 model configuration"""
 
 from collections import OrderedDict
 from typing import Mapping
@@ -26,10 +26,6 @@ from ...utils.backbone_utils import BackboneConfigMixin, get_aligned_output_feat
 
 
 logger = logging.get_logger(__name__)
-
-DINOV2_PRETRAINED_CONFIG_ARCHIVE_MAP = {
-    "facebook/dinov2-base": "https://huggingface.co/facebook/dinov2-base/resolve/main/config.json",
-}
 
 
 class Dinov2Config(BackboneConfigMixin, PretrainedConfig):
@@ -64,7 +60,7 @@ class Dinov2Config(BackboneConfigMixin, PretrainedConfig):
             The epsilon used by the layer normalization layers.
         image_size (`int`, *optional*, defaults to 224):
             The size (resolution) of each image.
-        patch_size (`int`, *optional*, defaults to 16):
+        patch_size (`int`, *optional*, defaults to 14):
             The size (resolution) of each patch.
         num_channels (`int`, *optional*, defaults to 3):
             The number of input channels.
@@ -122,7 +118,7 @@ class Dinov2Config(BackboneConfigMixin, PretrainedConfig):
         initializer_range=0.02,
         layer_norm_eps=1e-6,
         image_size=224,
-        patch_size=16,
+        patch_size=14,
         num_channels=3,
         qkv_bias=True,
         layerscale_value=1.0,
