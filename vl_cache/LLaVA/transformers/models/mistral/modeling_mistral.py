@@ -344,10 +344,10 @@ class MistralAttention(nn.Module):
             #  filtered_attn_weights 的 维度为 [1,32,26,kv_seq_len]
             filtered_attn_weights = (attn_weights_postvison >= 0.01 * max_scores).int()
             # 3. 统计每个头非0的数量
-            nonzero_entries = (filtered_attn_weights > 0).sum(dim=(-2, -1))
+            nonzero_entries = (filtered_attn_weights > 0).sum(dim=(-2, -1)).to(torch.float32)
             # 4. 统计每个头的稀疏度
             matrix_tril = torch.tril(torch.ones((q_len, q_len), device=attn_weights.device))[-post_vision_size:, :]
-            num_elements_denominator = matrix_tril.count_nonzero()
+            num_elements_denominator = matrix_tril.count_nonzero().to(torch.float32)
             sparsity = (num_elements_denominator - nonzero_entries) / num_elements_denominator
             # 5.取均值得到本层的稀疏度
             sparsity_layer = sparsity.mean()
@@ -835,6 +835,8 @@ class MistralModel(MistralPreTrainedModel):
         self.buget_layers = None
         self.sorted_attn_kv_indices = None
         self.is_prefill = True
+        self.question_id = -1
+
     def get_input_embeddings(self):
         return self.embed_tokens
 
@@ -855,8 +857,17 @@ class MistralModel(MistralPreTrainedModel):
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
         post_vision_size_list: Optional[List[int]] = None,
-        alpha_sparsity: Optional[float] = None
+        alpha_sparsity: Optional[float] = None,
+        question_id: Optional[int] = 0
     ) -> Union[Tuple, BaseModelOutputWithPast]:
+        
+        # 如果 question_id 不同，则说明是新的问题，buget_layers 清空为 None
+        if question_id != self.question_id:
+            self.buget_layers = None
+            self.sorted_attn_kv_indices = None
+            self.is_prefill = True
+            self.question_id = question_id
+
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -1206,7 +1217,8 @@ class MistralForCausalLM(MistralPreTrainedModel, GenerationMixin):
         cache_position: Optional[torch.LongTensor] = None,
         num_logits_to_keep: int = 0,
         post_vision_size_list: Optional[List[int]] = None,
-        alpha_sparsity: Optional[float] = None
+        alpha_sparsity: Optional[float] = None,
+        question_id: Optional[int] = -1
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         r"""
         Args:
@@ -1258,7 +1270,8 @@ class MistralForCausalLM(MistralPreTrainedModel, GenerationMixin):
             return_dict=return_dict,
             cache_position=cache_position,
             post_vision_size_list=post_vision_size_list,
-            alpha_sparsity=alpha_sparsity
+            alpha_sparsity=alpha_sparsity,
+            question_id=question_id
         )
 
         hidden_states = outputs[0]

@@ -57,6 +57,7 @@ class LlavaMistralForCausalLM(MistralForCausalLM, LlavaMetaForCausalLM):
         # wzx 初始化 post_vision_size_list
         self.post_vision_size_list = []
         self.alpha_sparsity = 0.0
+        self.question_id = -1
     def get_model(self):
         return self.model
 
@@ -76,7 +77,8 @@ class LlavaMistralForCausalLM(MistralForCausalLM, LlavaMetaForCausalLM):
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
         post_vision_size_list: Optional[List[int]] = None,
-        alpha_sparsity: Optional[float] = None
+        alpha_sparsity: Optional[float] = None,
+        question_id: Optional[int] = -1,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
 
         if inputs_embeds is None:
@@ -110,7 +112,8 @@ class LlavaMistralForCausalLM(MistralForCausalLM, LlavaMetaForCausalLM):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             post_vision_size_list=self.post_vision_size_list,
-            alpha_sparsity=self.alpha_sparsity
+            alpha_sparsity=self.alpha_sparsity,
+            question_id=self.question_id
         )
 
     @torch.no_grad()
@@ -120,6 +123,7 @@ class LlavaMistralForCausalLM(MistralForCausalLM, LlavaMetaForCausalLM):
         images: Optional[torch.Tensor] = None,
         image_sizes: Optional[torch.Tensor] = None,
         alpha_sparsity: Optional[float] = None,
+        question_id: Optional[int] = -1,
         **kwargs,
     ) -> Union[GenerateOutput, torch.LongTensor]:
         position_ids = kwargs.pop("position_ids", None)
@@ -149,7 +153,8 @@ class LlavaMistralForCausalLM(MistralForCausalLM, LlavaMetaForCausalLM):
             inputs_embeds = self.get_model().embed_tokens(inputs)
 
         self.post_vision_size_list = post_vision_size_list
-        self.alpha_sparsity = alpha_sparsity
+        self.alpha_sparsity = alpha_sparsity 
+        self.question_id = question_id
         return super().generate(
             position_ids=position_ids,
             attention_mask=attention_mask,
